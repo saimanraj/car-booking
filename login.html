@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1 >CAR TRAVELS</h1>
   <h1>Login</h1>
   <form id="loginForm">
     <input type="text" id="username" placeholder="Username" required>
@@ -20,12 +21,12 @@
 
   <div id="loginMsg" style="color:red; margin-top:10px;"></div>
 
-  <!-- Firebase Firestore Login Script -->
+
   <script type="module">
-    import { db } from "./firebase.js";
+    import { db } from "./fb.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-// Example usage:
+
 const snapshot = await getDocs(collection(db, "users"));
 
     document.getElementById("loginForm").addEventListener("submit", async function(e) {
@@ -45,13 +46,13 @@ const snapshot = await getDocs(collection(db, "users"));
       });
 
       if (userFound) {
-        window.location.href = "index.html";
+        window.location.href = "home.html";
       } else {
-        document.getElementById("loginMsg").textContent = "Invalid username or password.";
+        document.getElementById("loginMsg").textContent = "Invalid username or password ,if you are new user goto sign up..";
       }
     });
 
-    // Show/hide password
+  
     document.getElementById("showPassword").addEventListener("change", function () {
       const passField = document.getElementById("password");
       passField.type = this.checked ? "text" : "password";
