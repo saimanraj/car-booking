@@ -74,19 +74,25 @@
 
 <button onclick="logout()">Logout</button>
 
-<!-- Firebase Integration -->
+<audio id="bookingSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+<label><input type="checkbox" id="muteToggle"> 🔇 Mute Notifications</label>
+
+
+<script>
+  if (change.type === "added" && !previousBookingIds.has(change.doc.id)) {
+  document.getElementById("bookingSound").play();
+  showAlert("🔔 New booking received!");
+}
+
+</script>
+
+
 <script type="module">
   import {
     initializeApp
   } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 
-  import {
-    getFirestore,
-    collection,
-    getDocs,
-    deleteDoc,
-    doc,
-    onSnapshot
+  import {  getFirestore, collection, getDocs, deleteDoc, doc, onSnapshot,enableIndexedDbPersistence
   } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -108,12 +114,14 @@
   let bookingsLoadedOnce = false;
 
   function showAlert(message) {
-    alertBox.textContent = message;
-    alertBox.style.display = "block";
-    setTimeout(() => {
-      alertBox.style.display = "none";
-    }, 4000);
-  }
+  const alertBox = document.getElementById("alertBox");
+  alertBox.textContent = message;
+  alertBox.style.display = "block";
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, 3000);
+}
+
 
   async function loadUsers() {
     userList.innerHTML = "";
@@ -135,35 +143,53 @@
   }
 
   async function loadBookingsFromSnapshot(snapshot) {
-    bookingList.innerHTML = "";
-    let count = 1;
-    snapshot.forEach((docSnap) => {
-      const b = docSnap.data();
-      const id = docSnap.id;
-      const li = document.createElement("li");
+  bookingList.innerHTML = "";
+  let count = 1;
 
-      li.innerHTML = `
-        <strong>${count++}. ${b.name}</strong> booked <em>${b.car}</em><br>
-        From: ${b.pickup} → To: ${b.drop}<br>
-        Time: ${b.datetime}<br>
-        <button onclick="deleteBooking('${id}')">Delete</button>
-      `;
+  snapshot.forEach((docSnap) => {
+    const b = docSnap.data();
+    const id = docSnap.id;
+    const li = document.createElement("li");
 
-      bookingList.appendChild(li);
+    li.innerHTML = `
+      <strong>${count++}. ${b.name}</strong> booked <em>${b.car}</em><br>
+      📱 Phone: ${b.phone || 'N/A'}<br>
+      From: ${b.pickup} → To: ${b.drop}<br>
+      Time: ${b.datetime}<br>
+      <button onclick="deleteBooking('${id}')">Delete</button>
+    `;
+
+    bookingList.appendChild(li);
+  });
+}
+
+
+let previousBookingIds = new Set();
+
+onSnapshot(collection(db, "bookings"), (snapshot) => {
+  const currentIds = new Set();
+  snapshot.forEach(doc => currentIds.add(doc.id));
+
+  if (bookingsLoadedOnce) {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added" && !previousBookingIds.has(change.doc.id)) {
+        // ✅ Sound + visual alert
+        const mute = document.getElementById("muteToggle");
+        if (!mute || !mute.checked) {
+          document.getElementById("bookingSound").play();
+        }
+        showAlert("🔔 New booking received!");
+      }
     });
+  } else {
+    bookingsLoadedOnce = true;
   }
 
-  // Live listener for bookings
-  onSnapshot(collection(db, "bookings"), (snapshot) => {
-    if (bookingsLoadedOnce) {
-      showAlert("🔔 New booking received!");
-    } else {
-      bookingsLoadedOnce = true;
-    }
-    loadBookingsFromSnapshot(snapshot);
-  });
+  previousBookingIds = currentIds;
+  loadBookingsFromSnapshot(snapshot);
+});
 
-  // Deletion handlers (attached globally)
+
   window.deleteUser = async function(id) {
     await deleteDoc(doc(db, "users", id));
     alert("User deleted!");
@@ -173,14 +199,22 @@
   window.deleteBooking = async function(id) {
     await deleteDoc(doc(db, "bookings", id));
     alert("Booking deleted!");
-    // Bookings will auto-refresh via onSnapshot
   };
+  window.deleteBooking = async function(id) {
+  try {
+    await deleteDoc(doc(db, "bookings", id));
+    showAlert("🗑️ Booking deleted!");
+  } catch (error) {
+    alert("Error deleting booking: " + error.message);
+  }
+};
 
-  window.logout = function() {
-    window.location.href = "ad log.html";
-  };
 
-  // Initial load
+  window.logout = function () {
+  window.location.replace("ad log.html"); 
+};
+
+
   loadUsers();
 </script>
 
