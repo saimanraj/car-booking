@@ -1,0 +1,123 @@
+/* === General Reset === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* === Page Body === */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+/* === Headings === */
+h1, h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* === Form Styling === */
+form {
+  background: #fff;
+  color: #333;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 350px;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="datetime-local"],
+form select {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+form button {
+  width: 100%;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+form button:hover {
+  background-color: #0056b3;
+}
+
+/* === Links and Labels === */
+a {
+  color: #ffd700;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* === Messages === */
+#successMsg, #registerMsg, #loginMsg, .error {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* === Admin Lists === */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px auto;
+  max-width: 700px;
+  width: 100%;
+}
+
+ul li {
+  background: #ffffff;
+  color: #000;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  line-height: 1.6;
+  font-size: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* === Logout Button (Shared) === */
+button.logout {
+  background: #dc3545;
+  margin-top: 30px;
+}
+
+button.logout:hover {
+  background: #a71d2a;
+}
+
+/* === Responsive Fix === */
+@media (max-width: 480px) {
+  form, ul {
+    width: 90%;
+  }
+}
