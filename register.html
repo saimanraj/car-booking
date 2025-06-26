@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register | Car Booking</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #00b09b, #96c93d);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 60px;
+    }
+
+    h1 {
+      color: white;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      width: 300px;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1e3c72;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #registerMsg {
+      margin-top: 10px;
+      color: red;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    p {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Register</h1>
+
+<form id="registerForm">
+  <input type="text" id="regUsername" placeholder="Choose Username" required>
+  <input type="password" id="regPassword" placeholder="Choose Password" required>
+  <button type="submit">Register</button>
+</form>
+
+
+<p>Already have an account? <a href="index.html">Login</a></p>
+<div id="registerMsg"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1lysb8jx4Vhbpl2JxRXDV8U5NQ66S40",
+    authDomain: "car-booking-5d415.firebaseapp.com",
+    projectId: "car-booking-5d415",
+    storageBucket: "car-booking-5d415.appspot.com",
+    messagingSenderId: "892931397609",
+    appId: "1:892931397609:web:79ce5b3cb2af55a0e81d78"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById("regUsername").value.trim();
+    const password = document.getElementById("regPassword").value.trim();
+    const msg = document.getElementById("registerMsg");
+
+    try {
+      const usersRef = collection(db, "users");
+      const snapshot = await getDocs(usersRef);
+      let exists = false;
+
+      snapshot.forEach(doc => {
+        if (doc.data().username === username) {
+          exists = true;
+        }
+      });
+
+      if (exists) {
+        msg.textContent = "Username already exists. Try another.";
+      } else {
+        await addDoc(usersRef, { username, password });
+        msg.style.color = "green";
+        msg.textContent = "User registered successfully! Redirecting...";
+        setTimeout(() => window.location.href = "index.html", 1500);
+      }
+    } catch (error) {
+      msg.textContent = "Error: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>
