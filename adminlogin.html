@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(to right, #485563, #29323c);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      width: 320px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1e3c72;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h2>Admin Login</h2>
+  <form id="adminLoginForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+  <div id="errorMsg" class="error"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1lysb8jx4Vhbpl2JxRXDV8U5NQ66S40",
+    authDomain: "car-booking-5d415.firebaseapp.com",
+    projectId: "car-booking-5d415",
+    storageBucket: "car-booking-5d415.appspot.com",
+    messagingSenderId: "892931397609",
+    appId: "1:892931397609:web:79ce5b3cb2af55a0e81d78"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  document.getElementById("adminLoginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const errorMsg = document.getElementById("errorMsg");
+
+    try {
+      const snapshot = await getDocs(collection(db, "users"));
+      let matched = false;
+
+      snapshot.forEach((doc) => {
+        const user = doc.data();
+        if (user.username === username && user.password === password && username === "admin") {
+          matched = true;
+        }
+      });
+
+      if (matched) {
+        window.location.href = "admin.html";
+      } else {
+        errorMsg.textContent = "Invalid admin credentials.";
+      }
+    } catch (err) {
+      errorMsg.textContent = "Error: " + err.message;
+    }
+  });
+</script>
+
+</body>
+</html>
