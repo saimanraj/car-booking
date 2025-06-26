@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Booking App</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      padding: 30px;
+      color: white;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #map {
+      height: 300px;
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+
+    form {
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    input, select, button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    #successMsg {
+      color: green;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    button.logout {
+      background: #ff5555;
+      margin: 20px auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Book Your Car</h1>
+<!-- Booking Form -->
+<form id="bookingForm">
+  <input type="text" id="name" placeholder="Your Name" required>
+  <input type="text" id="pickup" placeholder="Pickup Location (type or select)" required>
+  <input type="text" id="drop" placeholder="Drop Location" required>
+  <input type="datetime-local" id="datetime" required>
+  <input type="tel" id="phone" placeholder="Phone Number" pattern="[0-9]{10}" maxlength="10" minlength="10" required title="Enter a 10-digit phone number"
+/>
+
+  <select id="car" required>
+    <option value="">Select Car Type</option>
+    <option value="indigo">Indigo (5 seater)</option>
+    <option value="thar">Thar (4 seater)</option>
+    <option value="suv">Xylo (7seater)</option>
+  </select>
+  <button type="submit">Book Now</button>
+</form>
+
+<div id="successMsg"></div>
+<div id="popup" style="
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-weight: bold;
+  z-index: 9999;
+">
+  ✅ Booking Confirmed!
+</div>
+
+
+<button class="logout" onclick="logout()">Logout</button>
+<!-- Google Map -->
+<div id="map"></div>
+
+
+
+<!-- Firebase Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8jzbBgdbrqV9YE7kIHzKWU6azqHym9vo",
+    authDomain: "car-booking-5d415.firebaseapp.com",
+    projectId: "car-booking-5d415",
+    storageBucket: "car-booking-5d415.appspot.com",
+    messagingSenderId: "892931397609",
+    appId: "1:892931397609:web:79ce5b3cb2af55a0e81d78"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+document.getElementById("bookingForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const pickup = document.getElementById("pickup").value;
+  const drop = document.getElementById("drop").value;
+  const datetime = document.getElementById("datetime").value;
+  const car = document.getElementById("car").value;
+
+  if (!/^\d{10}$/.test(phone)) {
+    alert("❌ Enter a valid 10-digit phone number");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "bookings"), {
+      name, phone, pickup, drop, datetime, car
+    });
+
+    alert("✅ Booking confirmed!");
+    document.getElementById("bookingForm").reset();
+  } catch (error) {
+    alert("❌ Error saving booking: " + error.message);
+  }
+});
+
+
+  // Prevent past date/time
+  window.addEventListener("DOMContentLoaded", () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const minTime = now.toISOString().slice(0, 16);
+    document.getElementById("datetime").min = minTime;
+  });
+
+  // Make logout global
+  window.logout = function () {
+  window.location.replace("index.html"); // replaces history
+};
+
+</script>
+
+<!-- Google Maps + Places Autocomplete -->
+ <input
+  id="mapSearchBox"
+  class="controls"
+  type="text"
+  placeholder="Search on map"
+  style="position:absolute; top:10px; left:50%; transform:translateX(-50%);
+         z-index:5; width:90%; max-width:400px; padding:10px; font-size:16px;
+         border-radius:8px; border:1px solid #ccc;"
+/>
+
+<script>
+  let map, marker, autocomplete, geocoder;
+
+  window.initMap = function () {
+  const defaultCenter = { lat: 28.6139, lng: 77.2090 };
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: defaultCenter,
+    zoom: 12
+  });
+
+  marker = new google.maps.Marker({ map });
+  geocoder = new google.maps.Geocoder();
+
+  // Search box inside map
+  const searchInput = document.getElementById("mapSearchBox");
+  const searchBox = new google.maps.places.SearchBox(searchInput);
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(searchInput);
+
+  // Bias results to map bounds
+  map.addListener("bounds_changed", () => {
+    searchBox.setBounds(map.getBounds());
+  });
+
+  // When user selects from autocomplete
+  searchBox.addListener("places_changed", () => {
+    const places = searchBox.getPlaces();
+    if (!places || places.length === 0) return;
+
+    const place = places[0];
+    if (!place.geometry) return;
+
+    map.setCenter(place.geometry.location);
+    map.setZoom(15);
+    marker.setPosition(place.geometry.location);
+    document.getElementById("pickup").value = place.formatted_address;
+  });
+
+  // Allow user to click map
+  map.addListener("click", (e) => {
+    const latlng = e.latLng;
+    marker.setPosition(latlng);
+    map.panTo(latlng);
+
+    geocoder.geocode({ location: latlng }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        document.getElementById("pickup").value = results[0].formatted_address;
+      } else {
+        document.getElementById("pickup").value = `${latlng.lat().toFixed(6)}, ${latlng.lng().toFixed(6)}`;
+      }
+    });
+  });
+};
+
+</script>
+
+
+<!-- Google Maps API (with Places Library) -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8jzbBgdbrqV9YE7kIHzKWU6azqHym9vo&callback=initMap&libraries=places&loading=async"
+  async
+></script>
+
+
+</body>
+</html>
